@@ -1,0 +1,26 @@
+<tool id="homer_peak_annotation" name="Homer peak annotation" version="0.1.0">
+  <description></description>
+  <stdio>
+      <exit_code range="1:" level="fatal" description="Tool exception" />
+  </stdio>
+  <command detect_errors="exit_code"><![CDATA[
+      
+  ]]></command>
+  <inputs>
+  </inputs>
+  <outputs>
+  </outputs>
+  <tests>
+  </tests>
+  <help>
+
+.. class:: infomark
+
+**What it does**
+
+It annotates peaks using a custom annotation file.
+
+
+  </help>
+</tool>
+

@@ -1,0 +1,12 @@
+# .shed.yml supporting automatic pushes.
+owner: artbio
+name: Homer peak annotation
+description: Annotate peaks using a custom annotation file
+long_description: |
+  Set the priority you wish to features
+categories:
+  - ChIP-seq
+homepage_url: http://artbio.fr
+remote_repository_url: https://github.com/ARTbio/tools-artbio/tree/master/tools/homer_peak_annotation
+toolshed:
+  - https://toolshed.g2.bx.psu.edu/
