@@ -53,6 +53,12 @@ option_list = list(
     help = "detection threshold to keep a gene in signature set [default : '%default' ]"
   ),
   make_option(
+    "--method",
+    default = "geom_mean",
+    type = 'character',
+    help = "Method used to compute signature score. Either geom_mean or z_score_mean (geometric mean or mean of z scores of the gene set) [default : '%default' ]"
+  ),
+  make_option(
     "--output",
     default = "./output.tab",
     type = 'character',
@@ -72,7 +78,7 @@ option_list = list(
   ),
   make_option(
     "--covariances",
-    default = "./statistics.tab",
+    default = "./covariances.tab",
     type = 'character',
     help = "Covariances between signature genes [default : '%default' ]"
   ),
@@ -161,18 +167,31 @@ if (length(unique(kept_genes)) > 1) {
 
 # Remove genes poorly detected in the dataset
 signature.counts <- signature.counts[kept_genes,]
-    
-# Replace 0 by 1 counts
-signature.counts[signature.counts == 0] <- 1
 
-# Geometric mean by cell
-score <- apply(signature.counts, 2, geometric.mean) # geometric.mean requires psych
+# Compute score
+if(opt$method == "geom_mean"){    
+  # Replace 0 by 1 counts
+  signature.counts[signature.counts == 0] <- 1
+
+  # Geometric mean by cell
+  score <- apply(signature.counts, 2, geometric.mean) # geometric.mean requires psych
+}
+
+if(opt$method == "z_score_mean"){
+  # Compute z-scores using scale
+  # that centers (substact mean) and scales (divided by standard deviation) the columns of a numeric matrix.
+  z_scores <- scale(signature.counts, center = T, scale = T)
+
+  # Mean of z-scores by cell
+  score <- colMeans(z_scores)
+
+}
 
 # Add results in signature_output
 signature_output <- data.frame(
                          cell = names(score),
                          score = score,
-                         rate = ifelse(score > mean(score), "HIGH", "LOW"),
+                         rate = ifelse(score > mean(score, na.rm = TRUE), "HIGH", "LOW"),
                          nGenes = colSums(data.counts != 0),
                          total_counts = colSums(data.counts)
                          )
@@ -184,7 +203,6 @@ statistics <- descriptive_stats(statistics.counts)
 statistics <- cbind(gene=rownames(statistics), statistics)
 
 
-
 # Re-arrange score matrix for plots
 score <- data.frame(score = score,
                     order = rank(score, ties.method = "first"),
@@ -192,13 +210,13 @@ score <- data.frame(score = score,
                     stringsAsFactors = F)
 
 pdf(file = opt$pdf)
-myplot <- ggplot(signature_output, aes(x=rate, y=score)) +
+myplot <- ggplot(subset(signature_output, !is.na(signature_output$rate)), aes(x=rate, y=score)) +
                  geom_violin(aes(fill = rate), alpha = .5, trim = F, show.legend = F, cex=0.5) +
-                 geom_abline(slope=0, intercept=mean(score$score), lwd=.5, color="red") +
+                 geom_abline(slope=0, intercept=mean(score$score, na.rm = TRUE), lwd=.5, color="red") +
                  scale_fill_manual(values=c("#ff0000", "#08661e")) +
                  geom_jitter(size=0.2) + labs(y = "Score", x = "Rate") +
-                 annotate("text", x = 0.55, y = mean(score$score), cex = 3, vjust=1.5,
-                           color="black", label = mean(score$score), parse = TRUE) +
+                 annotate("text", x = 0.55, y = mean(score$score, na.rm = TRUE), cex = 3, vjust=1.5,
+                           color="black", label = mean(score$score, na.rm = TRUE), parse = TRUE) +
                  labs(title = "Violin plots of Cell signature scores")
 
 print(myplot)

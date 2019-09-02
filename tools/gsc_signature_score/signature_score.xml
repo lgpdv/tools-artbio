@@ -20,6 +20,7 @@
             #end if
             --genes '$genes'
             --percentile_threshold '$threshold'
+            --method '$method'
             --output '$output'
             --stats '$stats'
             --pdf '$pdf'
@@ -36,6 +37,10 @@
                help="Comma-separated list of genes to include in signature, eg &quot;ZNF454,GAPDH,LAIR1,ACAD9,CHTOP&quot;" />
         <param name="threshold" type="float" value="20.0" label="Threshold to keep a proposed gene in the effective signature"
                help="signature gene that are not expressed in at least this percentage of cells will not be kept to compute the effective signature" />
+        <param name="method" type="select" label="Indicate method of choice to compute signature score">
+            <option value="geom_mean" selected="true">Geometric mean</option>
+            <option value="z_score_mean">Mean of z scores</option>
+        </param>
     </inputs>
     <outputs>
         <data name="pdf" format="pdf" label="Signatures plots from ${on_string}" />
@@ -54,6 +59,17 @@
             <output name="stats" file="gene_stats.tsv" ftype="tabular"/>
             <output name="correlations" file="correlations.tsv" ftype="tabular"/>
             <output name="covariances" file="covariances.tsv" ftype="tabular"/>
+        </test>
+        <test>
+            <param name="input" value="gene_filtered_input.tsv" ftype="txt"/>
+            <param name="sep" value="tab" />
+            <param name="genes" value="ZNF454,GAPDH,LAIR1,ACAD9,CHTOP" />
+            <param name="method" value="z_score_mean" />
+            <output name="pdf" file="signature_zscores.pdf" ftype="pdf" compare="sim_size" delta="200" />
+            <output name="output" file="signature_zscores.tsv" ftype="tabular"/>
+            <output name="stats" file="statistics_zscores.tsv" ftype="tabular"/>
+            <output name="correlations" file="correlations_zscores.tsv" ftype="tabular"/>
+            <output name="covariances" file="covariances_zscores.tsv" ftype="tabular"/>
         </test>
     </tests>
     <help>
